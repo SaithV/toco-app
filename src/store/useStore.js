@@ -43,7 +43,25 @@ export const useStore = create(
       ],
 
       // Arreglo vacío — se llena con importarEmpleados o agregarEmpleado
-      empleados: [],
+     empleados: [
+        { id: 101, nombre: "Sonia Escobar", areaId: "admision", subArea: "", categoria: "", plaza: "", matricula: "", extra: "T extra", diasDescanso: [] },
+        { id: 102, nombre: "Erendida Angulo", areaId: "toco", subArea: "Labor", categoria: "", plaza: "", matricula: "", extra: "", diasDescanso: [] },
+        { id: 103, nombre: "Karla López", areaId: "toco", subArea: "Recuperación", categoria: "", plaza: "", matricula: "", extra: "", diasDescanso: [] },
+        { id: 104, nombre: "Daniela Zabala", areaId: "toco", subArea: "Transición", categoria: "", plaza: "", matricula: "", extra: "", diasDescanso: [] },
+        { id: 105, nombre: "Edelmira Osuna", areaId: "toco", subArea: "Expulsión", categoria: "", plaza: "", matricula: "", extra: "", diasDescanso: [] },
+        { id: 106, nombre: "Jemina Ayala", areaId: "toco", subArea: "Quirófano", categoria: "", plaza: "", matricula: "", extra: "", diasDescanso: [] },
+        { id: 107, nombre: "Mirla Giron", areaId: "toco", subArea: "Quirófano", categoria: "", plaza: "", matricula: "", extra: "", diasDescanso: [] },
+        { id: 108, nombre: "Lourdes Villa", areaId: "toco", subArea: "Ceye", categoria: "", plaza: "", matricula: "", extra: "pte", diasDescanso: [] },
+        { id: 109, nombre: "Sandra Urias", areaId: "ucia", subArea: "", categoria: "", plaza: "", matricula: "", extra: "", diasDescanso: [] },
+        { id: 110, nombre: "Dagoberto Rodríguez", areaId: "ucia", subArea: "", categoria: "", plaza: "", matricula: "", extra: "", diasDescanso: [] },
+        { id: 111, nombre: "Eva Montoya", areaId: "ucin", subArea: "", categoria: "", plaza: "", matricula: "", extra: "TxT por kikey", diasDescanso: [] },
+        { id: 112, nombre: "Rosalía Manjarrez", areaId: "ucin", subArea: "", categoria: "", plaza: "", matricula: "", extra: "", diasDescanso: [] },
+        { id: 113, nombre: "Julia Marín", areaId: "gineco", subArea: "1ra Isla", categoria: "", plaza: "", matricula: "", extra: "", diasDescanso: [] },
+        { id: 114, nombre: "Siria Robles", areaId: "gineco", subArea: "1ra Isla", categoria: "", plaza: "", matricula: "", extra: "", diasDescanso: [] },
+        { id: 115, nombre: "Eduardo Lizarraga", areaId: "gineco", subArea: "Cendys", categoria: "", plaza: "", matricula: "", extra: "", diasDescanso: [] },
+        { id: 116, nombre: "Ilse monzón", areaId: "pediatria", subArea: "", categoria: "", plaza: "", matricula: "", extra: "", diasDescanso: [] },
+        { id: 117, nombre: "David", areaId: "patologicos", subArea: "", categoria: "", plaza: "", matricula: "", extra: "", diasDescanso: [] }
+      ],
 
       // ==========================================
       // 2. ESTADO DIARIO (El reporte que se limpia cada turno)
@@ -152,7 +170,7 @@ export const useStore = create(
       limpiarReporteDiario: () => set({ asistenciaDiaria: {} }),
     }),
     {
-      name: 'reportes-toco-storage', // Nombre en el localStorage
+      name: 'reportes-toco-storage-v2', // Nombre en el localStorage
     }
   )
 );
