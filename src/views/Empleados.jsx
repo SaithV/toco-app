@@ -32,6 +32,7 @@ const empleadoVacio = {
   areaId: '',
   subArea: '',
   diasDescanso: [],
+  esSuplente: false,
 };
 
 export default function Empleados({ onBack }) {
@@ -107,13 +108,14 @@ export default function Empleados({ onBack }) {
   const handleEditar = (emp) => {
     setEditandoId(emp.id);
     setForm({
-      nombre: emp.nombre ?? '',
-      categoria: emp.categoria ?? '',
-      matricula: emp.matricula ?? '',
-      plaza: emp.plaza ?? '',
-      areaId: emp.areaId ?? '',
-      subArea: emp.subArea ?? '',
+      nombre:      emp.nombre      ?? '',
+      categoria:   emp.categoria   ?? '',
+      matricula:   emp.matricula   ?? '',
+      plaza:       emp.plaza       ?? '',
+      areaId:      emp.areaId      ?? '',
+      subArea:     emp.subArea     ?? '',
       diasDescanso: emp.diasDescanso ?? [],
+      esSuplente:  emp.esSuplente  ?? false,
     });
     setModalAbierto(true);
   };
@@ -294,6 +296,13 @@ export default function Empleados({ onBack }) {
                   {emp.plaza && (
                     <span className="text-[11px] text-gray-400">Plaza: {emp.plaza}</span>
                   )}
+                  {emp.esSuplente && (
+                    <span className="inline-flex items-center text-[10px] font-bold
+                                     text-rose-600 bg-rose-50 border border-rose-200
+                                     px-1.5 py-0.5 rounded-full">
+                      Suplente
+                    </span>
+                  )}
                 </div>
                 {diasLabel(emp.diasDescanso) && (
                   <p className="text-[10px] text-gray-300 mt-0.5">
@@ -410,16 +419,45 @@ export default function Empleados({ onBack }) {
               {/* Plaza */}
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">
-                  Plaza
+                  No. de Plaza
                 </label>
                 <input
                   type="text"
                   value={form.plaza}
                   onChange={(e) => handleChange('plaza', e.target.value)}
-                  placeholder="Ej: Base, Suplente"
+                  placeholder="Ej. 6110"
                   className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm
                              focus:outline-none focus:ring-2 focus:ring-indigo-400"
                 />
+                <p className="mt-1 text-xs text-gray-500">
+                  Número de 4 a 5 dígitos asignado por el IMSS. Déjalo en blanco si es suplente.
+                </p>
+              </div>
+
+              {/* Tipo de Contrato (Base / Suplente) */}
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                  Tipo de Contrato
+                </label>
+                <select
+                  value={form.esSuplente ? 'suplente' : 'base'}
+                  onChange={(e) =>
+                    handleChange('esSuplente', e.target.value === 'suplente')
+                  }
+                  className={`w-full rounded-xl border px-4 py-3 text-sm bg-white
+                               focus:outline-none focus:ring-2 focus:ring-indigo-400
+                               ${form.esSuplente
+                                 ? 'border-rose-300 bg-rose-50 text-rose-800'
+                                 : 'border-violet-300 bg-violet-50 text-violet-800'}`}
+                >
+                  <option value="base">👤 Personal de Base</option>
+                  <option value="suplente">🔄 Suplente / Cubre Descansos</option>
+                </select>
+                <p className="mt-1 text-xs text-gray-500">
+                  {form.esSuplente
+                    ? 'Se mostrará en el cuadro de Cubre Descansos del Planeador Mensual.'
+                    : 'Se mostrará en el cuadro de Personal de Base del Planeador Mensual.'}
+                </p>
               </div>
 
               {/* Área (select) */}

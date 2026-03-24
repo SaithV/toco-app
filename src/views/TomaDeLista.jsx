@@ -1,5 +1,7 @@
+import { generarReporteRol } from '../utils/exportarExcel';
 import { useState } from 'react';
-import { useStore, ESTADOS_ASISTENCIA } from '../store/useStore';
+import { useStore, ESTADOS_PRINCIPALES, ESTADOS_SECUNDARIOS, getFechaHoy } from '../store/useStore';
+import { formatearMensajeWhatsApp } from '../utils/formatearWhatsApp';
 import {
   ArrowLeft,
   Send,
@@ -11,19 +13,43 @@ import {
   Moon,
   ChevronDown,
   X,
+  FileSpreadsheet,
+  FileText,
+  Info,
 } from 'lucide-react';
 
 // ── Configuración visual por estado ──────────────────────────────────────────
 const ESTADO_CONFIG = {
-  Pendiente:   { icon: Clock,        color: 'text-gray-300',   bg: 'bg-gray-50',    label: 'Pendiente'  },
-  Asistencia:  { icon: CheckCircle2, color: 'text-emerald-500', bg: 'bg-emerald-50', label: 'Asistencia' },
-  Falta:       { icon: XCircle,      color: 'text-red-400',    bg: 'bg-red-50',     label: 'Falta'      },
-  txt:         { icon: RefreshCw,    color: 'text-orange-400', bg: 'bg-orange-50',  label: 'TxT'        },
-  'T. Extra':  { icon: Star,         color: 'text-amber-400',  bg: 'bg-amber-50',   label: 'T. Extra'   },
+  // ── Principales ──
+  Pendiente:      { icon: Clock,        color: 'text-gray-300',    bg: 'bg-gray-50',    label: 'Pendiente'   },
+  Asistencia:     { icon: CheckCircle2, color: 'text-emerald-500', bg: 'bg-emerald-50', label: 'Asistencia'  },
+  Falta:          { icon: XCircle,      color: 'text-red-400',     bg: 'bg-red-50',     label: 'Falta'       },
+  txt:            { icon: RefreshCw,    color: 'text-orange-400',  bg: 'bg-orange-50',  label: 'TxT'         },
+  'T. Extra':     { icon: Star,         color: 'text-amber-400',   bg: 'bg-amber-50',   label: 'T. Extra'    },
+  // ── Secundarios IMSS ──
+  Vacaciones:     { icon: FileText, color: 'text-blue-500',    bg: 'bg-blue-50',    label: 'Vacaciones'    },
+  Incapacidad:    { icon: FileText, color: 'text-blue-500',    bg: 'bg-blue-50',    label: 'Incapacidad'   },
+  Licencia:       { icon: FileText, color: 'text-blue-500',    bg: 'bg-blue-50',    label: 'Licencia'      },
+  Nivelacion:     { icon: FileText, color: 'text-blue-500',    bg: 'bg-blue-50',    label: 'Nivelacion'    },
+  Convenio:       { icon: FileText, color: 'text-blue-500',    bg: 'bg-blue-50',    label: 'Convenio'      },
+  'Cambio Adsc':  { icon: FileText, color: 'text-blue-500',    bg: 'bg-blue-50',    label: 'Cambio Adsc'   },
+  'Otro Servicio':{ icon: FileText, color: 'text-blue-500',    bg: 'bg-blue-50',    label: 'Otro Servicio' },
+  Permuta:        { icon: FileText, color: 'text-blue-500',    bg: 'bg-blue-50',    label: 'Permuta'       },
+  'Cambio Turno': { icon: FileText, color: 'text-blue-500',    bg: 'bg-blue-50',    label: 'Cambio Turno'  },
+  Festivo:        { icon: FileText, color: 'text-blue-500',    bg: 'bg-blue-50',    label: 'Festivo'       },
+  Comision:       { icon: FileText, color: 'text-blue-500',    bg: 'bg-blue-50',    label: 'Comisión'      },
 };
 
 export default function TomaDeLista({ onBack }) {
-  const { areas, empleados, asistenciaDiaria, actualizarAsistencia } = useStore();
+  const {
+    areas, empleados, asistenciaDiaria, actualizarAsistencia,
+    servicioSeleccionado, turnoSeleccionado, periodoInicio, periodoFin,
+    planeacionMensual, rolSemanal, configuracion,
+  } = useStore();
+
+  // ── Fecha de hoy como clave del diccionario ──
+  const fechaHoy = getFechaHoy();                        // "2026-03-21"
+  const registrosDia = asistenciaDiaria[fechaHoy] ?? {}; // { [empId]: { estado, ... } }
 
   // ── Día actual (0 = Dom, 1 = Lun … 6 = Sáb) ──
   const diaActual = new Date().getDay();
@@ -32,6 +58,8 @@ export default function TomaDeLista({ onBack }) {
   const [mostrarDescansos, setMostrarDescansos] = useState(false);
   // id del empleado cuyo picker de estado está abierto (null = ninguno)
   const [pickerAbierto, setPickerAbierto] = useState(null);
+  // id del empleado cuyo sub-panel "Más estados" está expandido
+  const [masAbierto, setMasAbierto] = useState(null);
 
   // ── Helper: ¿hoy es día de descanso del empleado? ──
   const esDiaDescanso = (emp) =>
@@ -43,78 +71,25 @@ export default function TomaDeLista({ onBack }) {
     // NO cerramos el picker para que el usuario pueda editar pacientes/cubreA
   };
 
-  // ── Generar mensaje WhatsApp ──────────────────────────────────────────────
-  const generarWhatsApp = () => {
-    const opcionesFecha = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
-    const fechaStr = new Date().toLocaleDateString('es-MX', opcionesFecha);
-    const fechaCapitalizada = fechaStr.charAt(0).toUpperCase() + fechaStr.slice(1);
+  // ── Enviar reporte por WhatsApp ───────────────────────────────────────────
+  const handleWhatsApp = () => {
+    const texto = formatearMensajeWhatsApp({ areas, empleados, registrosDia });
+    window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, '_blank');
+  };
 
-    let mensaje = `*${fechaCapitalizada}*\n\n`;
-
-    // Helper: formatea una línea individual según el estado del empleado
-    const formatearLinea = (emp) => {
-      const reg = asistenciaDiaria[emp.id];
-      const estado = reg?.estado ?? 'Pendiente';
-      const pacientes = reg?.pacientes ?? 0;
-      const cubreA = reg?.cubreA ?? '';
-      const extra = emp.extra ? ` ${emp.extra}` : '';
-
-      switch (estado) {
-        case 'Falta':
-          return `~Falta ${emp.nombre}~`;
-        case 'Asistencia':
-          return pacientes > 0
-            ? `(${pacientes}) ${emp.nombre}${extra}`
-            : `${emp.nombre}${extra}`;
-        case 'T. Extra':
-          return pacientes > 0
-            ? `(${pacientes}) ${emp.nombre}${extra} (T. Extra)`
-            : `${emp.nombre}${extra} (T. Extra)`;
-        case 'txt':
-          return pacientes > 0
-            ? `(${pacientes}) ${emp.nombre}${extra} (txt por ${cubreA})`
-            : `${emp.nombre}${extra} (txt por ${cubreA})`;
-        default:
-          return null; // 'Pendiente' → omitir
-      }
-    };
-
-    areas.forEach((area) => {
-      // Solo empleados con estado distinto a Pendiente en esta área
-      const empEnArea = empleados.filter(
-        (emp) =>
-          emp.areaId === area.id &&
-          (asistenciaDiaria[emp.id]?.estado ?? 'Pendiente') !== 'Pendiente'
-      );
-      if (empEnArea.length === 0) return;
-
-      mensaje += `*${area.nombre}*\n`;
-
-      // Agrupar por sub-área
-      const subAreasMap = {};
-      empEnArea.forEach((emp) => {
-        const sub = emp.subArea || 'General';
-        if (!subAreasMap[sub]) subAreasMap[sub] = [];
-        subAreasMap[sub].push(emp);
-      });
-
-      Object.keys(subAreasMap).forEach((subArea) => {
-        const lineas = subAreasMap[subArea]
-          .map(formatearLinea)
-          .filter(Boolean);
-        if (lineas.length === 0) return;
-
-        if (subArea === 'General') {
-          mensaje += `${lineas.join(', ')}\n`;
-        } else {
-          mensaje += `${subArea}: ${lineas.join(', ')}\n`;
-        }
-      });
-
-      mensaje += '\n';
-    });
-
-    window.open(`https://wa.me/?text=${encodeURIComponent(mensaje)}`, '_blank');
+  // ── Exportar Excel IMSS ────────────────────────────────────
+  const handleExcel = () => {
+    generarReporteRol(
+      empleados,
+      asistenciaDiaria,
+      periodoInicio,
+      periodoFin,
+      servicioSeleccionado,
+      turnoSeleccionado,
+      planeacionMensual,
+      rolSemanal,
+      configuracion,
+    );
   };
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -131,6 +106,14 @@ export default function TomaDeLista({ onBack }) {
           <ArrowLeft size={20} className="text-gray-700" />
         </button>
         <h2 className="text-xl font-bold text-gray-800">Pase de Lista</h2>
+      </div>
+
+      {/* ── Callout informativo ── */}
+      <div className="flex items-start gap-2.5 bg-blue-50 border border-blue-100 rounded-2xl px-4 py-3 mb-4">
+        <Info size={15} className="text-blue-500 mt-0.5 shrink-0" />
+        <p className="text-xs text-blue-800 leading-relaxed">
+          Registro diario. Selecciona la asistencia del turno actual. Los datos se guardarán automáticamente para el reporte del IMSS.
+        </p>
       </div>
 
       {/* ── Lista de áreas y empleados ── */}
@@ -157,7 +140,7 @@ export default function TomaDeLista({ onBack }) {
               {/* Empleados */}
               <div className="divide-y divide-gray-100">
                 {empleadosArea.map((emp) => {
-                  const registro = asistenciaDiaria[emp.id];
+                  const registro = registrosDia[emp.id];
                   const estadoActual = registro?.estado ?? 'Pendiente';
                   const config = ESTADO_CONFIG[estadoActual] ?? ESTADO_CONFIG.Pendiente;
                   const IconoEstado = config.icon;
@@ -215,14 +198,20 @@ export default function TomaDeLista({ onBack }) {
 
                       {/* ── Picker de estado (inline desplegable) ── */}
                       {abierto && (
-                        <div className="px-4 pb-3 bg-gray-50 border-t border-gray-100">
-                          <p className="text-[11px] text-gray-400 font-medium pt-2 pb-1.5">
-                            Seleccionar estado:
-                          </p>
-                          <div className="flex flex-wrap gap-2">
-                            {ESTADOS_ASISTENCIA.map((estado) => {
+                        <div className="px-4 pb-4 bg-gray-50 border-t border-gray-100">
+
+                          {/* ── Encabezado del picker ── */}
+                          <div className="flex items-center gap-2 pt-3 pb-2">
+                            <Send size={16} className="text-emerald-600 shrink-0" />
+                            <span className="text-sm font-semibold text-gray-700">
+                              Seleccionar estado (para WhatsApp)
+                            </span>
+                          </div>
+
+                          {/* ── Fila 1: estados principales — tarjetas grandes ── */}
+                          <div className="flex flex-wrap gap-3">
+                            {ESTADOS_PRINCIPALES.map((estado) => {
                               const cfg = ESTADO_CONFIG[estado] ?? ESTADO_CONFIG.Pendiente;
-                              const Ic = cfg.icon;
                               const activo = estadoActual === estado;
                               return (
                                 <button
@@ -231,29 +220,79 @@ export default function TomaDeLista({ onBack }) {
                                     e.stopPropagation();
                                     handleSeleccionarEstado(emp.id, estado);
                                   }}
-                                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold
-                                    transition-all active:scale-95 border
+                                  className={`px-5 py-3.5 rounded-2xl text-base font-bold
+                                    transition-all active:scale-95
                                     ${activo
-                                      ? `${cfg.bg} ${cfg.color} border-current shadow-sm`
-                                      : 'bg-white text-gray-500 border-gray-200'
+                                      ? `${cfg.bg} ${cfg.color} border-2 border-current shadow-md`
+                                      : 'bg-white text-gray-600 border border-gray-200'
                                     }`}
                                 >
-                                  <Ic size={13} />
-                                  {estado}
+                                  {cfg.label}
                                 </button>
                               );
                             })}
+
+                            {/* Botón Más... */}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setMasAbierto(masAbierto === emp.id ? null : emp.id);
+                              }}
+                              className={`flex items-center gap-2 px-5 py-3.5 rounded-2xl text-base font-bold
+                                transition-all active:scale-95 border
+                                ${masAbierto === emp.id
+                                  ? 'bg-gray-800 text-white border-gray-800'
+                                  : 'bg-gray-100 text-gray-700 border-gray-200'
+                                }`}
+                            >
+                              Más…
+                              <ChevronDown
+                                size={18}
+                                className={`transition-transform duration-150 ${masAbierto === emp.id ? 'rotate-180' : ''}`}
+                              />
+                            </button>
+
                             {/* Cerrar picker */}
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setPickerAbierto(null);
+                                setMasAbierto(null);
                               }}
-                              className="flex items-center gap-1 px-2 py-1.5 rounded-full text-xs text-gray-400 bg-white border border-gray-200 active:scale-95"
+                              className="flex items-center justify-center w-14 py-3.5 rounded-2xl bg-white text-gray-400 border border-gray-200 active:scale-95"
                             >
-                              <X size={12} />
+                              <X size={18} />
                             </button>
                           </div>
+
+                          {/* ── Sub-panel de estados secundarios IMSS ── */}
+                          {masAbierto === emp.id && (
+                            <div
+                              className="mt-3 grid grid-cols-3 gap-2 p-3 bg-white rounded-2xl border border-blue-100"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {ESTADOS_SECUNDARIOS.map((estado) => {
+                                const cfg = ESTADO_CONFIG[estado] ?? { icon: FileText, color: 'text-blue-500', bg: 'bg-blue-50', label: estado };
+                                const Ic = cfg.icon;
+                                const activo = estadoActual === estado;
+                                return (
+                                  <button
+                                    key={estado}
+                                    onClick={() => handleSeleccionarEstado(emp.id, estado)}
+                                    className={`flex items-center gap-1.5 px-2 py-2 rounded-xl text-xs font-semibold
+                                      transition-all active:scale-95 border justify-center text-center
+                                      ${activo
+                                        ? `${cfg.bg} ${cfg.color} border-current shadow-sm`
+                                        : 'bg-gray-50 text-gray-500 border-gray-200'
+                                      }`}
+                                  >
+                                    <Ic size={12} className="shrink-0" />
+                                    <span className="leading-tight">{cfg.label}</span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          )}
 
                           {/* ── Inputs de detalle condicionales ── */}
                           {['Asistencia', 'T. Extra', 'txt'].includes(estadoActual) && (
@@ -320,15 +359,31 @@ export default function TomaDeLista({ onBack }) {
         </button>
       </div>
 
-      {/* ── Botón flotante WhatsApp ── */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-linear-to-t from-gray-100 via-gray-100 to-transparent flex justify-center">
-        <button
-          onClick={generarWhatsApp}
-          className="bg-emerald-600 text-white px-8 py-4 rounded-full font-bold shadow-lg flex items-center gap-2 active:scale-95 transition-transform w-full max-w-md justify-center"
-        >
-          <Send size={20} />
-          Generar WhatsApp
-        </button>
+      {/* ── Barra de acciones flotante ── */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-linear-to-t from-gray-100 via-gray-100 to-transparent">
+        <div className="flex gap-3 max-w-md mx-auto">
+          {/* Botón Excel */}
+          <button
+            onClick={handleExcel}
+            className="flex items-center justify-center gap-2 flex-1 bg-white text-emerald-700
+                       font-bold py-4 rounded-2xl shadow-sm border border-emerald-200
+                       active:scale-95 transition-transform"
+          >
+            <FileSpreadsheet size={20} />
+            <span className="text-sm">Excel IMSS</span>
+          </button>
+
+          {/* Botón WhatsApp */}
+          <button
+            onClick={handleWhatsApp}
+            className="flex items-center justify-center gap-2 flex-2 bg-emerald-600
+                       text-white font-bold py-4 rounded-2xl shadow-lg
+                       active:scale-95 transition-transform"
+          >
+            <Send size={20} />
+            <span className="text-sm">Reporte WhatsApp</span>
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-import { ClipboardList, Users, Building2 } from 'lucide-react'
+import { ClipboardList, Users, Building2, CalendarDays, Settings, Stethoscope, ClipboardCheck, Bed, Activity } from 'lucide-react'
 
 // 1. Agregamos un 'id' a cada objeto para saber a qué pantalla navegar
 const menuItems = [
@@ -9,6 +9,46 @@ const menuItems = [
     icon: ClipboardList,
     color: 'text-blue-600',
     bg: 'bg-blue-50',
+  },
+  {
+    id: 'planeador',
+    title: 'Planeador Mensual',
+    description: 'Rol de actividades — 8 semanas',
+    icon: CalendarDays,
+    color: 'text-violet-600',
+    bg: 'bg-violet-50',
+  },
+  {
+    id: 'rol-semanal',
+    title: 'Rol Semanal (Cirugía)',
+    description: 'Asignación diaria Dom–Sáb',
+    icon: Stethoscope,
+    color: 'text-teal-600',
+    bg: 'bg-teal-50',
+  },
+  {
+    id: 'evaluaciones',
+    title: 'Evaluaciones (Enlace)',
+    description: 'Cédula de enlace de turno',
+    icon: ClipboardCheck,
+    color: 'text-amber-600',
+    bg: 'bg-amber-50',
+  },
+  {
+    id: 'censo-madrugada',
+    title: 'Censo de Pacientes',
+    description: 'Control de camas — madrugada',
+    icon: Bed,
+    color: 'text-indigo-600',
+    bg: 'bg-indigo-50',
+  },
+  {
+    id: 'datamart',
+    title: 'DataMart (Procedimientos)',
+    description: 'Bitácora de procedimientos del turno',
+    icon: Activity,
+    color: 'text-rose-600',
+    bg: 'bg-rose-50',
   },
   {
     id: 'empleados',
@@ -25,6 +65,14 @@ const menuItems = [
     icon: Building2,
     color: 'text-violet-600',
     bg: 'bg-violet-50',
+  },
+  {
+    id: 'configuracion',
+    title: 'Configuración',
+    description: 'Elaboró, autorizó e indicador',
+    icon: Settings,
+    color: 'text-gray-600',
+    bg: 'bg-gray-100',
   },
 ]
 
