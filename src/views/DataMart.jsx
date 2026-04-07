@@ -192,15 +192,16 @@ export default function DataMart({ onBack }) {
     <div className="min-h-screen bg-gray-100 flex flex-col">
 
       {/* ── Encabezado ──────────────────────────────────────────────────── */}
-      <header className="bg-white border-b border-gray-200 px-4 pt-12 pb-4">
+      <header className="sticky top-0 z-30 bg-gray-100 border-b border-gray-200 px-4 pt-4 pb-4">
         <div className="flex items-center gap-3">
           <button
             onClick={onBack}
-            className="flex items-center justify-center rounded-xl p-2 text-gray-500
-                       hover:bg-gray-100 active:bg-gray-200 transition-colors"
+            className="bg-white px-3 py-2 rounded-xl shadow-sm border border-gray-200
+                       active:bg-gray-50 flex items-center gap-2 transition-colors"
             aria-label="Regresar"
           >
-            <ChevronLeft className="h-6 w-6" strokeWidth={2} />
+            <ChevronLeft className="h-4.5 w-4.5" strokeWidth={2} />
+            <span className="text-sm font-semibold text-gray-600">Regresar</span>
           </button>
           <div className="flex items-center gap-2">
             <div className="flex items-center justify-center rounded-xl bg-rose-50 p-2">

@@ -87,17 +87,21 @@ export default function Areas({ onBack }) {
   return (
     <div className="max-w-md mx-auto pb-24">
       {/* ── Encabezado sticky ── */}
-      <div className="flex items-center mb-4 bg-white p-4 rounded-2xl shadow-sm sticky top-0 z-20">
-        <button
-          onClick={onBack}
-          className="p-2 mr-3 bg-gray-100 rounded-full active:scale-95 transition-transform"
-        >
-          <ArrowLeft size={20} className="text-gray-700" />
-        </button>
-        <h2 className="text-xl font-bold text-gray-800">Áreas</h2>
-        <span className="ml-auto text-sm text-gray-400 font-medium">
-          {areas.length}
-        </span>
+      <div className="sticky top-0 z-30 bg-gray-100 px-4 pt-4 pb-4 border-b border-gray-200 mb-4">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={onBack}
+            className="bg-white px-3 py-2 rounded-xl shadow-sm border border-gray-200
+                       active:bg-gray-50 flex items-center gap-2 transition-colors"
+          >
+            <ArrowLeft size={18} className="text-gray-600" />
+            <span className="text-sm font-semibold text-gray-600">Regresar</span>
+          </button>
+          <h2 className="text-xl font-bold text-gray-800">Áreas</h2>
+          <span className="ml-auto text-sm text-gray-400 font-medium">
+            {areas.length}
+          </span>
+        </div>
       </div>
 
       {/* ── Botón + Nueva Área ── */}

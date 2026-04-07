@@ -143,24 +143,27 @@ export default function PlaneadorMensual({ onBack }) {
     <div className="min-h-screen bg-gray-100 flex flex-col">
 
       {/* ── Encabezado ──────────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-20 bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3 shadow-sm">
-        <button
-          onClick={onBack}
-          className="flex items-center justify-center w-9 h-9 rounded-xl bg-gray-100
-                     hover:bg-gray-200 active:scale-95 transition-all"
-          aria-label="Regresar"
-        >
-          <ChevronLeft size={20} className="text-gray-600" />
-        </button>
-        <div className="flex items-center gap-2">
-          <CalendarDays size={22} className="text-violet-600" />
-          <div>
-            <h1 className="text-base font-bold text-gray-800 leading-tight">Planeador Mensual</h1>
-            <p className="text-xs text-gray-400 leading-none">Rol de actividades — 8 semanas</p>
+      <header className="sticky top-0 z-30 bg-gray-100 border-b border-gray-200 px-4 pt-4 pb-4">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={onBack}
+            className="bg-white px-3 py-2 rounded-xl shadow-sm border border-gray-200
+                       active:bg-gray-50 flex items-center gap-2 transition-colors"
+            aria-label="Regresar"
+          >
+            <ChevronLeft size={18} className="text-gray-600" />
+            <span className="text-sm font-semibold text-gray-600">Regresar</span>
+          </button>
+          <div className="flex items-center gap-2">
+            <CalendarDays size={22} className="text-violet-600" />
+            <div>
+              <h1 className="text-base font-bold text-gray-800 leading-tight">Planeador Mensual</h1>
+              <p className="text-xs text-gray-400 leading-none">Rol de actividades — 8 semanas</p>
+            </div>
           </div>
-        </div>
-        <div className="ml-auto text-xs text-gray-400 font-medium">
-          {empleados.length} empleados
+          <div className="ml-auto text-xs text-gray-400 font-medium">
+            {empleados.length} empleados
+          </div>
         </div>
       </header>
 

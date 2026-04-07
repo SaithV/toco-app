@@ -166,6 +166,18 @@ export const useStore = create(
       registrosDatamart: [],
 
       // ==========================================
+      // 2h. PERSONALIZACIÓN DE MENÚ
+      // ==========================================
+      // IDs de tarjetas del menú principal que están ocultas.
+      menuOcultos: [],
+
+      // ==========================================
+      // 2i. INFORME DE ROPA
+      // ==========================================
+      // Diccionario { 'YYYY-MM-DD': { departamento, turno, datosDia, observaciones } }
+      capturasRopa: {},
+
+      // ==========================================
       // 3. ACCIONES — Empleados
       // ==========================================
 
@@ -468,6 +480,47 @@ export const useStore = create(
         set((state) => ({
           registrosDatamart: state.registrosDatamart.filter((r) => r.id !== id),
         })),
+
+      // ==========================================
+      // 12. ACCIONES — Personalización de Menú
+      // ==========================================
+
+      /**
+       * Alterna la visibilidad de una tarjeta del menú principal.
+       * Si el id ya está en menuOcultos lo quita (muestra); si no, lo agrega (oculta).
+       *
+       * @param {string} id - ID de la tarjeta de menú (ej. 'planeador', 'evaluaciones')
+       */
+      toggleMenuOculto: (id) =>
+        set((state) => ({
+          menuOcultos: state.menuOcultos.includes(id)
+            ? state.menuOcultos.filter((item) => item !== id)
+            : [...state.menuOcultos, id],
+        })),
+
+      // ==========================================
+      // 12. ACCIONES — Informe de Ropa
+      // ==========================================
+
+      /**
+       * Guarda (o sobreescribe) la captura diaria de ropa para una fecha dada.
+       *
+       * @param {string} fecha          - Fecha en formato 'YYYY-MM-DD'
+       * @param {string} departamento   - Departamento / Servicio seleccionado
+       * @param {string} turno          - Turno seleccionado
+       * @param {object} datosDia       - Objeto { conceptoKey: valor }  (12 conceptos IMSS)
+       * @param {string} observaciones  - Texto libre de observaciones del día
+       */
+      guardarCapturaRopa: (fecha, departamento, turno, datosDia, observaciones) =>
+        set((state) => ({
+          capturasRopa: {
+            ...state.capturasRopa,
+            [fecha]: { departamento, turno, datosDia, observaciones },
+          },
+        })),
+
+      /** Limpia TODAS las capturas de ropa (para iniciar nuevo mes) */
+      limpiarCapturasRopa: () => set({ capturasRopa: {} }),
     }),
     {
       name: 'reportes-toco-storage-v2', // Nombre en el localStorage
